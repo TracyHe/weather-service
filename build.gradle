@@ -1,0 +1,51 @@
+group 'com.oreilly'
+
+apply plugin: 'java'
+apply plugin: 'docker'
+apply plugin: 'application'
+
+buildscript {
+    repositories { jcenter() }
+    dependencies {
+        classpath 'se.transmode.gradle:gradle-docker:1.2'
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url 'http://dl.bintray.com/rickfast/microservice-chassis/'
+    }
+}
+
+dependencies {
+    compile 'com.oreilly.microservices:microservice-chassis:1.0'
+    compile 'org.jsr107.ri:cache-annotations-ri-guice:1.0.0'
+    compile 'org.ehcache:jcache:1.0.0'
+}
+
+mainClassName = 'com.oreilly.weather.WeatherService'
+
+task dockerImage(type: Docker) {
+    group = 'docker'
+    description = "Packs the project's JVM application as a Docker image."
+
+    inputs.files project.distTar
+
+    push = Boolean.getBoolean('docker.push')
+
+    doFirst {
+        def buildNumber = System.getenv('BUILD_NUMBER')
+        baseImage = 'rickfast/oreilly-microservice-base'
+        tagVersion = buildNumber ? "${project.version}.${buildNumber}" : project.version
+        registry = 'rickfast'
+        applicationName = project.applicationName
+        addFile project.distTar.outputs.files.singleFile
+        exposePort 8080
+
+        def installDir = "/" + project.distTar.archiveName - ".${project.distTar.extension}"
+        entryPoint = ["$installDir/bin/${project.applicationName}"]
+    }
+}
+
+dockerImage.dependsOn 'assemble'
