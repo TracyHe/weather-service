@@ -1,0 +1,25 @@
+{
+  "id": "weather-service",
+  "cpus": 0.125,
+  "mem": 128,
+  "disk": 0,
+  "instances": 2,
+  "container": {
+    "docker": {
+      "image": "docker4tracy/weather-service",
+      "network": "BRIDGE",
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "protocol": "tcp",
+          "servicePort": 0
+        }
+      ]
+    },
+    "type": "DOCKER",
+    "volumes": []
+  },
+  "env": {},
+  "labels": {},
+  "healthChecks": []
+}
